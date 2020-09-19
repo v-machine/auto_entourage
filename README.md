@@ -7,7 +7,7 @@ Automatically populate an 3D environment with 2D entourage for visulization purp
 3. scaling entourage to match the 
 4. automatically rotate entourage based on the camera angle
 
-## challenges
+## Challenges
 1. entourages might already be facing a particular angle, thus might not be appropriate to face the camera directly
 2. lighting must match the global illumination in the model
 
