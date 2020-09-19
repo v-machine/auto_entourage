@@ -1,8 +1,4 @@
 # Auto Entourage
-
-## Entourage placing
-
-## Intent
 Automatically populate an 3D environment with 2D entourage for visulization purposes.
 
 ## Sub-problem
