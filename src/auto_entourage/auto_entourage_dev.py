@@ -1,14 +1,20 @@
+"""Populates a scene with .png entourages given 2D region(s) or anchor point(s)
+"""
+__author__ = "Vincent Mai"
+__version__ = "0.1.0"
+
 import scriptcontext as sc
 import rhinoscriptsyntax as rs
 import Rhino.Geometry as rg
+import Rhino.RhinoDoc as rhDoc
 import ghpythonlib.components as ghc
 import random
 import System
 import math
 import os
 
-
 PERSON_HEIGHT = 5.8
+RANDOM_SEED = 0
 
 def addPictureFrame(path, point, vector):
     """Returns a vertical picture frame, given a point (Rhino.Geometry.Point3d) and a vector (Rhino.Geometry.Vector)
@@ -44,26 +50,47 @@ def getCameraDirection():
     projCameraDir = rg.Vector3d(cameraDir.X, cameraDir.Y, 0)
     projCameraDir.Unitize()
     return projCameraDir
-    
-def populate(path, region, num):
-    """Populate a region (closed curve) with vertical picture frames
+
+def populateRegion(region, num):
+    """Returns a list of populated points given a region
     """
-    fileList = getFiles(path)
-    ptsList = ghc.Populate2D(region, num, seed=1)
-    baseVector = rs.VectorRotate(getCameraDirection(), 90, [0, 0, 1])
+    region = rg.Brep.CreatePlanarBreps(region)
+    return ghc.PopulateGeometry(region, num, seed=RANDOM_SEED)
     
+def placeImage(imgList, ptsList, baseVector):
     for idx, pt in enumerate(ptsList):
-        img = fileList[idx % len(fileList)]
+        img = imgList[idx % len(imgList)]
         try:
             width, height = getImageSize(img)
             vector = createVector(baseVector, PERSON_HEIGHT, width, height)
             addPictureFrame(img, pt, vector)
         except:
-            print("can't process "+img)
+            print("failed to process "+img)
     
-def debug():
-    pass
+def populate(path, region, point, num):
+    """Populate a region (closed curve) with vertical picture frames
+    """
+    imgList = getFiles(path)
+    baseVector = rs.VectorRotate(getCameraDirection(), 90, [0, 0, 1])
+    if region:
+        ptsList = populateRegion(region, num)
+        placeImage(imgList, ptsList, baseVector)
+    if point:
+        placeImage(imgList, point, baseVector)
 
-debug()
+if not layer: layer = "entourage"
+ 
 if run:
-   populate(path, region, num)        
+    sc.doc = rhDoc.ActiveDoc
+    layer_idx = sc.doc.Layers.Add(layer, System.Drawing.Color.Black)
+    sc.doc.Layers.SetCurrentLayerIndex(layer_idx, True)
+    populate(path, region, point, num)
+    sc.doc.Layers.SetCurrentLayerIndex(0, True)
+else:
+    sc.doc = rhDoc.ActiveDoc
+    rhobjs = sc.doc.Objects.FindByLayer(layer)
+    if rhobjs:
+        for obj in rhobjs:
+            sc.doc.Objects.Delete(obj)
+    sc.doc.Layers.SetCurrentLayerIndex(0, True)
+    sc.doc.Layers.Delete(sc.doc.Layers.FindName(layer), True)
