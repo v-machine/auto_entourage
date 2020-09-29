@@ -44,7 +44,9 @@ def addPictureFrame(path, point, normal, width, height):
     """
     centering_vector = rs.VectorRotate(normal, 90, [0, 0, 1])
     point -= 0.5*centering_vector*width
-    plane = rg.Plane(point, normal)
+    x_axis = rs.VectorRotate(normal, 90, [0, 0, 1])
+    y_axis = rg.Vector3d(0, 0, 1)
+    plane = rg.Plane(point, x_axis, y_axis)
     sc.doc.ActiveDoc.Objects.AddPictureFrame(plane, path, False, width, height,
                                                 False, False)
     
