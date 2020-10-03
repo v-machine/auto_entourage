@@ -13,6 +13,7 @@ __version__ = "0.1.0"
 
 from ghpythonlib.componentbase import executingcomponent as component
 import Grasshopper, GhPython
+import System
 import Rhino
 import rhinoscriptsyntax as rs
 import scriptcontext as sc
@@ -21,14 +22,14 @@ import Rhino.RhinoDoc
 import ghpythonlib.components as ghc
 import Grasshopper.Kernel as ghk
 import random
-import System
 import math
 import os
 import inspect
 
-class MyComponent(component):
+class AutoEntourage(component):
     
     def RunScript(self, path, img_height, region, num, point, layer_name, place):
+                
         RANDOM_SEED = 0
         ghdoc = sc.doc
         
@@ -46,13 +47,16 @@ class MyComponent(component):
         
         @rhinoDocContext
         def addPictureFrame(path, point, normal, width, height):
-            """Alternative method. Adds a vertical picture frame without using alpha
+            """Calls rhinoscriptsyntax's method of addPictureFrame and centers the
+            picture around the given point
             """
             centering_vector = rs.VectorRotate(normal, 90, [0, 0, 1])
             point -= 0.5*centering_vector*width
-            plane = rg.Plane(point, normal)
-            sc.doc.ActiveDoc.Objects.AddPictureFrame(plane, path, False, width, height,
-                                                        False, False)
+            x_axis = rs.VectorRotate(normal, 90, [0, 0, 1])
+            y_axis = rg.Vector3d(0, 0, 1)
+            plane = rg.Plane(point, x_axis, y_axis)
+            sc.doc.ActiveDoc.Objects.AddPictureFrame(plane, path, False, width,
+                                                     height, False, False)
             
         def getFiles(path):
             """Returns a list of paths to PNGs from a directory
@@ -87,14 +91,13 @@ class MyComponent(component):
             return ghc.PopulateGeometry(brep, num, seed=RANDOM_SEED)
         
         def placeImage(imgList, ptsList, normal):
-            """Alternative method for loading picture frames
+            """Places images given an list of anchor points and normal vector
             """
             for idx, pt in enumerate(ptsList):
                 img = imgList[idx % len(imgList)]
-                height = img_height[idx % len(img_height)]
                 try:
-                    width, height = scaleImage(*getImageSize(img), 
-                                                targetHeight = height)
+                    width, height = scaleImage(*getImageSize(img),
+                                               targetHeight=img_height)
                     addPictureFrame(img, pt, normal, width, height)
                 except:
                     print("Failed to process {}".format(img))
@@ -121,7 +124,8 @@ class MyComponent(component):
                 ptsList = populateRegion(region, num)
                 placeImage(imgList, ptsList, cameraDirection)
             if point:
-                placeImage(imgList, point, cameraDirection)
+                placeImage(imgList, [point], cameraDirection)
+                
         
         @rhinoDocContext
         def createAndSetCurrentLayer(layer_name):
@@ -165,31 +169,13 @@ class MyComponent(component):
                 message = "Need to specify num (of entourages) in region"
             return message
         
-        def get_error_message():
-            """Returns error messages or None if no errors found
-            """
-            message = None
-            if region and region[0] is None:
-                message = "region contains null values"
-            if point and point[0] is None:
-                message = "point contains null values"
-            return message
-        
         def display_warnings():
             warning_message = get_warning_message()
             if warning_message is not None:
                 w = ghk.GH_RuntimeMessageLevel.Warning
                 self.AddRuntimeMessage(w, warning_message)
-            
-        def display_errors():
-            error_message = get_error_message()
-            if error_message is not None:
-                e = ghk.GH_RuntimeMessageLevel.Error
-                self.AddRuntimeMessage(e, error_message)
-        
-        deleteLayer(layer_name)
+
         display_warnings()
-        display_errors()
         
         if place:
             populate(path, region, point, num)
