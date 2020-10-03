@@ -22,7 +22,7 @@ class MyComponent(component):
         status = None
         
         # replace guid with compiled guid of the auto_entourage component
-        guid = System.Guid("a1da57ae-b1dd-4a0f-874e-40e0403a9ac2")
+        guid = System.Guid("cbeb30a8-b175-46da-9ea9-79c7e4d76815")
         auto_entourage = Grasshopper.Instances.ComponentServer.FindAssemblyByObject(guid)
         quick_crop = auto_entourage.Location.replace("auto_entourage.ghpy",
                                                      "quick_crop.exe")
@@ -50,31 +50,14 @@ class MyComponent(component):
             if not in_path or not out_path:
                 message = "Both in_path and out_path needs to be specified"
             return message
-        
-        def get_error_message():
-            """Returns error messages or None if no errors found
-            """
-            message = None
-            if in_path and in_path is None:
-                message = "in_path contains null"
-            if out_path and out_path is None:
-                message = "out_path contains null"
-            return message
             
         def display_warnings():
             warning_message = get_warning_message()
             if warning_message is not None:
                 w = ghk.GH_RuntimeMessageLevel.Warning
                 self.AddRuntimeMessage(w, warning_message)
-            
-        def display_errors():
-            error_message = get_error_message()
-            if error_message is not None:
-                e = ghk.GH_RuntimeMessageLevel.Error
-                self.AddRuntimeMessage(e, error_message)
         
         display_warnings()
-        display_errors()
         
         if in_path and out_path and crop:
             status = call_quick_crop()
