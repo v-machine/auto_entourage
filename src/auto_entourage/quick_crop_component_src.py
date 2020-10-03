@@ -15,14 +15,14 @@ import System
 import Rhino
 import subprocess
 
-class MyComponent(component):
+class QuickCrop(component):
     
     def RunScript(self, in_path, out_path, crop):
         
         status = None
         
         # replace guid with compiled guid of the auto_entourage component
-        guid = System.Guid("cbeb30a8-b175-46da-9ea9-79c7e4d76815")
+        guid = System.Guid("9e1aaf9a-3496-42b2-a827-c9ae515b3226")
         auto_entourage = Grasshopper.Instances.ComponentServer.FindAssemblyByObject(guid)
         quick_crop = auto_entourage.Location.replace("auto_entourage.ghpy",
                                                      "quick_crop.exe")

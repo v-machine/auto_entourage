@@ -169,13 +169,28 @@ class AutoEntourage(component):
                 message = "Need to specify num (of entourages) in region"
             return message
         
+        def get_error_message():
+            """Returns error messages or None if no errors found
+            """
+            message = None
+            if region and point:
+                message = "choose region or point but not both"
+            return message
+        
         def display_warnings():
             warning_message = get_warning_message()
             if warning_message is not None:
                 w = ghk.GH_RuntimeMessageLevel.Warning
                 self.AddRuntimeMessage(w, warning_message)
+        
+        def display_errors():
+            error_message = get_error_message()
+            if error_message is not None:
+                e = ghk.GH_RuntimeMessageLevel.Error
+                self.AddRuntimeMessage(e, error_message)
 
         display_warnings()
+        display_errors()
         
         if place:
             populate(path, region, point, num)

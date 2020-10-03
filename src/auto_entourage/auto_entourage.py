@@ -162,6 +162,15 @@ def get_warning_message():
     if region and not num:
         message = "Need to specify num (of entourages) in region"
     return message
+
+def get_error_message():
+    """Returns error messages or None if no errors found
+    """
+    message = None
+    if region and point:
+        message = "choose region or point but not both"
+    return message
+        
         
 if place:
     populate(path, region, point, num)
