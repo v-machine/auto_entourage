@@ -11,6 +11,8 @@
 __author__ = "Vincent Mai"
 __version__ = "0.1.0"
 
+import System
+import Rhino
 import rhinoscriptsyntax as rs
 import scriptcontext as sc
 import Rhino.Geometry as rg
@@ -18,17 +20,16 @@ import Rhino.RhinoDoc
 import ghpythonlib.components as ghc
 import Grasshopper.Kernel as ghk
 import random
-import System
 import math
 import os
 import inspect
-        
+                
 RANDOM_SEED = 0
 ghdoc = sc.doc
-
+        
 if not layer_name: 
     layer_name = "Entourages"
-
+        
 def rhinoDocContext(func):
     """Decorator to switch ghdoc context to rhinodoc
     """
@@ -37,10 +38,11 @@ def rhinoDocContext(func):
         func(*args, **kwargs)
         sc.doc = ghdoc
     return wrapper
-
+        
 @rhinoDocContext
 def addPictureFrame(path, point, normal, width, height):
-    """Alternative method. Adds a vertical picture frame without using alpha
+    """Calls rhinoscriptsyntax's method of addPictureFrame and centers the
+    picture around the given point
     """
     centering_vector = rs.VectorRotate(normal, 90, [0, 0, 1])
     point -= 0.5*centering_vector*width
@@ -49,25 +51,25 @@ def addPictureFrame(path, point, normal, width, height):
     plane = rg.Plane(point, x_axis, y_axis)
     sc.doc.ActiveDoc.Objects.AddPictureFrame(plane, path, False, width, height,
                                                 False, False)
-    
+            
 def getFiles(path):
     """Returns a list of paths to PNGs from a directory
     """
     fileList = os.listdir(path)
     return [path + file for file in fileList if file.endswith(".png")]
-
+        
 def getImageSize(path):
     """Returns the height and width of the image from the file path
     """
     bmp = System.Drawing.Bitmap.FromFile(path)
     return (bmp.Width, bmp.Height)
-
+        
 def scaleImage(baseWidth, baseHeight, targetHeight):
     """scales image by the target height
     """
     factor = targetHeight / baseHeight
     return baseWidth*factor, targetHeight
-    
+            
 def getCameraDirection():
     """Returns the camera direction of the active viewport
     """
@@ -75,26 +77,25 @@ def getCameraDirection():
     projCameraDir = rg.Vector3d(cameraDir.X, cameraDir.Y, 0)
     projCameraDir.Unitize()
     return projCameraDir
-
+        
 def populateRegion(region, num):
     """Returns a list of populated points given a region
     """
     brep = rg.Brep.CreatePlanarBreps(region)
     return ghc.PopulateGeometry(brep, num, seed=RANDOM_SEED)
-
+        
 def placeImage(imgList, ptsList, normal):
-    """Alternative method for loading picture frames
+    """Places images given an list of anchor points and normal vector
     """
     for idx, pt in enumerate(ptsList):
         img = imgList[idx % len(imgList)]
-        height = img_height[idx % len(img_height)]
         try:
-            width, height = scaleImage(*getImageSize(img), 
-                                        targetHeight = height)
+            width, height = scaleImage(*getImageSize(img),
+                                       targetHeight=img_height)
             addPictureFrame(img, pt, normal, width, height)
         except:
             print("Failed to process {}".format(img))
-            
+                    
 def inNewLayer(layer_name):
     """Decorator to call a function in a newly created layer
     """
@@ -105,7 +106,7 @@ def inNewLayer(layer_name):
             resetLayer()
         return wrapper
     return wrap_func
-
+        
 @inNewLayer(layer_name)
 def populate(path, region, point, num):
     """Populate a region (closed curve) with vertical picture frames
@@ -117,8 +118,9 @@ def populate(path, region, point, num):
         ptsList = populateRegion(region, num)
         placeImage(imgList, ptsList, cameraDirection)
     if point:
-        placeImage(imgList, point, cameraDirection)
-
+        placeImage(imgList, [point], cameraDirection)
+                
+        
 @rhinoDocContext
 def createAndSetCurrentLayer(layer_name):
     """Creates a layer with the given name
@@ -129,13 +131,13 @@ def createAndSetCurrentLayer(layer_name):
     else:
         layer_idx = layer.Index
     sc.doc.Layers.SetCurrentLayerIndex(layer_idx, True)
-
+        
 @rhinoDocContext
 def resetLayer():
     """Resets layer to default layer
     """
     sc.doc.Layers.SetCurrentLayerIndex(0, True)
-
+        
 @rhinoDocContext
 def deleteLayer(layer_name):
     """Deletes a layer by its name as well as all objects inside
@@ -146,8 +148,8 @@ def deleteLayer(layer_name):
             sc.doc.Objects.Delete(obj)
     sc.doc.Layers.SetCurrentLayerIndex(0, True)
     sc.doc.Layers.Delete(sc.doc.Layers.FindName(layer_name), True)
-
-def warning_message():
+        
+def get_warning_message():
     """Returns warning messages or None if no warnings found
     """
     message = None
@@ -160,18 +162,7 @@ def warning_message():
     if region and not num:
         message = "Need to specify num (of entourages) in region"
     return message
-
-def error_message():
-    """Returns error messages or None if no errors found
-    """
-    message = None
-    if region and region[0] is None:
-        message = "region contains null values"
-    if point and point[0] is None:
-        message = "point contains null values"
-    return message
-
-deleteLayer(layer_name)
+        
 if place:
     populate(path, region, point, num)
 else:
