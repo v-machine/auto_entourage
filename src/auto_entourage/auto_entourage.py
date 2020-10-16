@@ -18,11 +18,13 @@ import scriptcontext as sc
 import Rhino.Geometry as rg
 import Rhino.RhinoDoc
 import ghpythonlib.components as ghc
+import ghpythonlib.treehelpers as th
 import Grasshopper.Kernel as ghk
 import random
 import math
 import os
 import inspect
+from treehandler import TreeHandler
                 
 RANDOM_SEED = 0
 ghdoc = sc.doc
@@ -41,7 +43,7 @@ def rhinoDocContext(func):
         
 @rhinoDocContext
 def addPictureFrame(path, point, normal, width, height):
-    """Calls rhinoscriptsyntax's method of addPictureFrame and centers the
+    """Calls rhinoscriptsyntax's addPictureFrame method and centers the
     picture around the given point
     """
     centering_vector = rs.VectorRotate(normal, 90, [0, 0, 1])
@@ -77,27 +79,27 @@ def getCameraDirection():
     projCameraDir = rg.Vector3d(cameraDir.X, cameraDir.Y, 0)
     projCameraDir.Unitize()
     return projCameraDir
-        
+
+@TreeHandler
 def populateRegion(region, num):
     """Returns a list of populated points given a region
     """
     brep = rg.Brep.CreatePlanarBreps(region)
     return ghc.PopulateGeometry(brep, num, seed=RANDOM_SEED)
-        
-def placeImage(imgList, ptsList, normal):
+
+@TreeHandler
+def placeImage(img, pt, normal, img_height):
     """Places images given an list of anchor points and normal vector
     """
-    for idx, pt in enumerate(ptsList):
-        img = imgList[idx % len(imgList)]
-        try:
-            width, height = scaleImage(*getImageSize(img),
-                                       targetHeight=img_height)
-            addPictureFrame(img, pt, normal, width, height)
-        except:
-            print("Failed to process {}".format(img))
+    try:
+        width, height = scaleImage(*getImageSize(img),
+                                    targetHeight=img_height)
+        addPictureFrame(img, pt, normal, width, height)
+    except:
+        print("Failed to process {}".format(img))
                     
 def inNewLayer(layer_name):
-    """Decorator to call a function in a newly created layer
+    """Decorator to call a function in a new layer
     """
     def wrap_func(func):
         def wrapper(*args, **kwargs):
@@ -106,20 +108,27 @@ def inNewLayer(layer_name):
             resetLayer()
         return wrapper
     return wrap_func
-        
-@inNewLayer(layer_name)
-def populate(path, region, point, num):
-    """Populate a region (closed curve) with vertical picture frames
+
+@TreeHandler
+def getImages(path, num):
+    """Randomly choose a number of images from the given file path
     """
     imgList = getFiles(path)
-    imgList = random.sample(imgList, len(imgList))
-    cameraDirection = getCameraDirection()
+    return [imgList[i % len(imgList)] for i in range(num)]
+
+@inNewLayer(layer_name)
+def populate(path, img_height, region, point, num):
+    """Populate a region (closed curve) with vertical picture frames
+    """
+    cameraDirection = th.list_to_tree([getCameraDirection()])
     if region:
-        ptsList = populateRegion(region, num)
-        placeImage(imgList, ptsList, cameraDirection)
+        pts = populateRegion(region, num)
+        imgs = getImages(path, num)
+        placeImage(imgs, pts, cameraDirection, img_height)
     if point:
-        placeImage(imgList, [point], cameraDirection)
-                
+        num = th.list_to_tree([len(point.AllData())]) 
+        imgs = getImages(path, num)
+        placeImage(imgs, point, cameraDirection, img_height)
         
 @rhinoDocContext
 def createAndSetCurrentLayer(layer_name):
@@ -167,12 +176,12 @@ def get_error_message():
     """Returns error messages or None if no errors found
     """
     message = None
-    if region and point:
-        message = "choose region or point but not both"
+    if not region and not point:
+        message = "choose at least one region or (and) one point"
     return message
         
         
 if place:
-    populate(path, region, point, num)
+    populate(path, img_height, region, point, num)
 else:
     deleteLayer(layer_name)
