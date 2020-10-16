@@ -25,9 +25,11 @@ import math
 import os
 import inspect
 from treehandler import TreeHandler
-                
+
 RANDOM_SEED = 0
 ghdoc = sc.doc
+
+random.seed(RANDOM_SEED)
         
 if not layer_name: 
     layer_name = "Entourages"
@@ -121,12 +123,12 @@ def populate(path, img_height, region, point, num):
     """Populate a region (closed curve) with vertical picture frames
     """
     cameraDirection = th.list_to_tree([getCameraDirection()])
-    if region:
+    if region.AllData():
         pts = populateRegion(region, num)
         imgs = getImages(path, num)
         placeImage(imgs, pts, cameraDirection, img_height)
-    if point:
-        num = th.list_to_tree([len(point.AllData())]) 
+    if point.AllData():
+        num = TreeHandler.branchDataSize(point)
         imgs = getImages(path, num)
         placeImage(imgs, point, cameraDirection, img_height)
         
@@ -171,15 +173,8 @@ def get_warning_message():
     if region and not num:
         message = "Need to specify num (of entourages) in region"
     return message
-
-def get_error_message():
-    """Returns error messages or None if no errors found
-    """
-    message = None
-    if not region and not point:
-        message = "choose at least one region or (and) one point"
-    return message
         
+deleteLayer(layer_name)
         
 if place:
     populate(path, img_height, region, point, num)
