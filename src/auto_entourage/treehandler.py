@@ -23,6 +23,7 @@ class TreeHandler:
         self.func = func
         
     def __call__(self, *args, **kwargs):
+        args = map(TreeHandler.toTree, args)
         for arg in args:
             arg.SimplifyPaths()
         depths = [self.__treeDepth(t) for t in args]
@@ -38,8 +39,7 @@ class TreeHandler:
         """intertwine two trees with equal depth
         """
         result = []
-        # for i in range(max([len(t) for t in trees])): 
-        # for i in range(max(trees, key=lambda x: len(x))):
+        for i in range(max([len(t) for t in trees])): 
             items = [t[min(i, len(t)-1)] for t in trees]
             if isinstance(items[0], list):
                 result.append(self.__intertwine(items))
@@ -57,8 +57,20 @@ class TreeHandler:
         return self.__intertwine(trees)
     
     @staticmethod
-    def branchDataSize(tree):
-        """Returns an equivalently structured GH_Tree of  num of points
+    def toTree(arg):
+        """Converts object to Grasshopper.DataTree
+        """
+        if isinstance(arg, DataTree[object]):
+            return arg
+        else:
+            if not isinstance(arg, list):
+                return th.list_to_tree([arg])
+            else:
+                return th.list_to_tree(arg)
+    
+    @staticmethod
+    def topologyTree(tree):
+        """Returns the tree's topology in an equivalently structure
             Example:
                 >>> branchDataSize([[a, b, c], [x, y]])
                 >>> tree {1; 1}
