@@ -97,6 +97,7 @@ def populateRegion(region, num, seed):
     Args:
         region (rg.Curve): a closed-curve delimiting a region
         num (int): the number of points to populate the region
+        seed (int): random seed for random population
     Returns:
         a list of 3d points
     """
@@ -132,6 +133,7 @@ def loadImage(path, num, seed):
     Args:
         path (str): path to the directory contain the .png images
         num (int): the number of images to load randomly
+        seed (int): random seed to randomize images
     Returns:
         a list of images loaded from the given directory
     """
@@ -149,6 +151,7 @@ def populate(path, img_height, region, point, num, seed):
         region (rg.Curve): a closed curve
         point (rg.Point3d): the anchor point of the picture frame
         num (int): the num of PictureFrames to populate a region
+        seed (int): the random seed for loadImage and populateRegion
     """
     with NewLayerContext(layer_name):
         cameraDirection = getCameraDirection()
