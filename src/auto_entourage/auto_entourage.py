@@ -91,7 +91,7 @@ def getCameraDirection():
     return projCameraDir
 
 @TreeHandler
-def populateRegion(region, num):
+def populateRegion(region, num, seed):
     """Returns a list of populated points given a region
     
     Args:
@@ -126,7 +126,7 @@ def placeImage(path, pt, normal, img_height):
                     
         
 @TreeHandler
-def loadImage(path, num):
+def loadImage(path, num, seed):
     """Randomly choose a number of images from the given file path
     
     Args:
@@ -140,7 +140,7 @@ def loadImage(path, num):
     imgList = random.sample(imgList, len(imgList))
     return [imgList[i % len(imgList)] for i in range(num)]
 
-def populate(path, img_height, region, point, num):
+def populate(path, img_height, region, point, num, seed):
     """Populate a region (closed curve) with vertical PictureFrames
     
     Args:
@@ -153,26 +153,26 @@ def populate(path, img_height, region, point, num):
     with NewLayerContext(layer_name):
         cameraDirection = getCameraDirection()
         if region.AllData():
-            pts = populateRegion(region, num)
-            imgs = loadImage(path, num)
+            pts = populateRegion(region, num, seed)
+            imgs = loadImage(path, num, seed)
             placeImage(imgs, pts, cameraDirection, img_height)
         if point.AllData():
             num = TreeHandler.topologyTree(point)
-            imgs = loadImage(path, num)
+            imgs = loadImage(path, num, seed)
             placeImage(imgs, point, cameraDirection, img_height)
        
 def get_warning_message():
     """Returns warning messages or None if no warnings found
     """
     message = None
-    if not path:
+    if not path.AllData():
         message = "Path to PNGs is missing"
-    elif not img_height:
+    elif not img_height.AllData():
         message = "img_height is missing"
-    elif not point and not region:
+    elif not point.AllData() and not region.AllData():
         message = "At least one region or one point is needed"
-    if region and not num:
-        message = "Need to specify num (of entourages) in region"
+    if region.AllData() and not num.AllData():
+        message = "Please specify num (of entourages) in region"
     return message
 
 def get_error_message():
@@ -183,14 +183,13 @@ def get_error_message():
         message = "Multiple layer names not supported"
     return message
 
-:q
-layer_name = layer_name.AllData()       
-if not layer_name: 
+if not layer_name.AllData(): 
     layer_name = "Entourage"
 else:
-    layer_name = layer_name[0]
-if not seed:
+    layer_name = layer_name.AllData()[0]
+
+if seed.BranchCount == 0:
     seed = RANDOM_SEED
 
 if place:
-    populate(path, img_height, region, point, num)
+    populate(path, img_height, region, point, num, seed)
