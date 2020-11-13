@@ -17,6 +17,7 @@ The plugin consists of two components: `imgCrop` and `AutoEntourage`. The prepro
 ## Notes
 - Run `imgCrop` once to preprocess images and reuse them for all future projects.
 - `AutoEntourage` will take items, lists or trees as input. (With the exception of `layerName` input). You can expect the component to behave similarly to other default Grasshopper components.
+- When using `AutoEngourage`, as long as the inputs are unchange,  you can `load` entourages once, and use `orient` to align entourages to different views.
 
 ## Disclaimer
 The plugin had only been tested for Rhino 6 on Windows 10.
@@ -24,6 +25,6 @@ The plugin had only been tested for Rhino 6 on Windows 10.
 ## Known Issues
 - `orient` in `raytrace` mode occasionally behaves incorrectly. For now, reload entourages as a workaround or simply reorient in less computationally intensive display modes. 
 
-## Next Steps
-- vector entourages support
-- a new component to enable users greater control in how entourages are loaded.
+## TODO
+- Add supprot for vector entourages
+- Add a new component to enable users greater control in how entourages are loaded.
