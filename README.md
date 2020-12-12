@@ -23,7 +23,8 @@ The plugin consists of two components: `imgCrop` and `AutoEntourage`. The prepro
 The plugin had only been tested for Rhino 6 on Windows 10.
 
 ## Known Issues
-- `orient` in `raytrace` mode occasionally behaves incorrectly. For now, reload entourages as a workaround or simply reorient in less computationally intensive display modes. 
+- `orient` in `raytrace` mode occasionally behaves incorrectly. For now, reload entourages as a workaround or simply reorient in less computationally intensive display modes.
+- imgCrop.exe flagged as Trojan by certain anti-virus software.
 
 ## TODO
 - Add supprot for vector entourages
