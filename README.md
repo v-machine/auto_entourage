@@ -24,7 +24,7 @@ The plugin had only been tested for Rhino 6 on Windows 10.
 
 ## Known Issues
 - `orient` in `raytrace` mode occasionally behaves incorrectly. For now, reload entourages as a workaround or simply reorient in less computationally intensive display modes.
-- imgCrop.exe flagged as Trojan by certain anti-virus software.
+- `orient` may cause Rhino viewports to freeze in Rhino 6.23 and 7.3
 
 ## TODO
 - Add supprot for vector entourages
