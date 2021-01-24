@@ -20,7 +20,7 @@ The plugin consists of two components: `imgCrop` and `AutoEntourage`. The prepro
 - When using `AutoEngourage`, as long as the inputs are unchange,  you can `load` entourages once, and use `orient` to align entourages to different views.
 
 ## Disclaimer
-The plugin had only been tested for Rhino 6 on Windows 10.
+The plugin had been tested for both Rhino/Grasshopper 6 and 7 on Windows 10.
 
 ## Known Issues
 - `orient` in `raytrace` mode occasionally behaves incorrectly. For now, reload entourages as a workaround or simply reorient in less computationally intensive display modes.
