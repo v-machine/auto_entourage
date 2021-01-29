@@ -1,6 +1,10 @@
 # Auto Entourage
 Auto Entourage is a small Grasshopper plugin for loading entourage images(.png format) from an image folder into Rhino.
 
+![](/demo/parallel_view_people_01.png)
+![](/demo/gh_demo_output/ex05b.png)
+![](/demo/gh_demo_output/ex04b.png)
+
 ## Overview
 Adding entourages into architectural illustrations can be time-consuming, especially for larger-scale projects. Auto Entourage for Rhino/Grasshopper aims to speed up your visualization workflow by loading entourage images (.png images with transparent background) directly into Rhino, such that entourages can be rendered alongside you 3d model.
 
