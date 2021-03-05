@@ -71,37 +71,39 @@ class TreeHandler:
         
     def __call__(self, *args, **kwargs):
         args = map(TreeHandler.toTree, args)
-        for arg in args:
-            arg.SimplifyPaths()
         depths = [self.__treeDepth(t) for t in args]
-        trees = [th.tree_to_list(arg, lambda x: x) for arg in args]
-        return th.list_to_tree(self.__ghtree_handler(trees, depths))
+        lsts = [th.tree_to_list(arg, lambda x: x[0]) for arg in args]
+        return th.list_to_tree(self.__interlace_depth(lsts, depths))
 
     def __treeDepth(self, t):
         """returns the depth of the gh tree"""
         path = t.Path(t.BranchCount-1)
         return len(str(path).split(";"))
 
-    def __intertwine(self, trees):
-        """intertwine two trees with equal depth
+    def __interlace_size(self, trees):
+        """
+        Returns the result of interlacing then applying self.function 
+        to two lists with equal depth but varying in sizes per depth
         """
         result = []
         for i in range(max([len(t) for t in trees])): 
             items = [t[min(i, len(t)-1)] for t in trees]
             if isinstance(items[0], list):
-                result.append(self.__intertwine(items))
+                result.append(self.__interlace_size(items))
             else:
                 result.append(self.func(*items))
         return result
 
-    def __ghtree_handler(self, trees, depths):
-        """Returns appropriate GH Tree by explicit looping
+    def __interlace_depth(self, lsts, depths):
+        """
+        Returns the result of interlacing then applying self.function 
+        to two lists possibly differ in depths and sizes
         """
         max_depth = max(depths)
         for idx, d in enumerate(depths):
             for j in range(max_depth-d):
-                trees[idx] = [trees[idx]]
-        return self.__intertwine(trees)
+                lsts[idx] = [lsts[idx]]
+        return self.__interlace_size(lsts)
     
     @staticmethod
     def toTree(arg):
@@ -116,7 +118,7 @@ class TreeHandler:
                 return th.list_to_tree(arg)
     
     @staticmethod
-    def topologyTree(tree):
+    def treeTopology(tree):
         """Returns the tree's topology in an equivalently structure
             Example:
                 >>> branchDataSize([[a, b, c], [x, y]])
@@ -124,8 +126,7 @@ class TreeHandler:
         """
         def __listBranchSize(tree):
             if isinstance(tree, DataTree[object]):
-                tree.SimplifyPaths()
-                tree = th.tree_to_list(tree, lambda x: x) 
+                tree = th.tree_to_list(tree, lambda x: x[0]) 
             result = []
             for b in tree:
                 if isinstance(b[0], list):
